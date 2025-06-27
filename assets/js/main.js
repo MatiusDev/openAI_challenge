@@ -1,9 +1,15 @@
-import '../css/style.css';
-
 const apiKey = import.meta.env.VITE_OPEN_API_KEY;
 const apiUrl = import.meta.env.VITE_OPEN_API_URL;
 
-async function getStory(category) {
+const btnFirstIdea = document.querySelector('#btn-first-idea');
+const btnSecondIdea = document.querySelector('#btn-second-idea');
+const btnThirdIdea = document.querySelector('#btn-third-idea');
+const buttonsContainer = document.querySelector('#buttons-container');
+
+const categorySelect = document.querySelector('#category-select');
+const storyBox = document.querySelector('#story-box');
+
+async function getStory(category, idea) {
   const headers = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${apiKey}`,
@@ -13,58 +19,100 @@ async function getStory(category) {
     headers,
     body: JSON.stringify({
       model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: `Genera una historia de ${category}` }],
+      messages: [{ role: 'user', content: `Genera una historia de ${category} de 50 palabras, la historia debe ser sobre ${idea}` }],
     }),
   });
   const data = await response.json();
   return data.choices[0].message.content;
 }
 
-document.querySelector('#app').innerHTML = `
-  <div class="container is-flex is-flex-direction-column is-align-items-center is-justify-content-center">
-    <div class="box box-container">
-      <div class="field has-text-centered">
-        <h2 class="title is-2 label">Elige una categoría de historia</h2>
-        <div class="control">
-          <div class="select is-fullwidth">
-            <select id="category-select">
-              <option value="ficcion">Ficción</option>
-              <option value="comedia">Comedia</option>
-              <option value="romance">Romance</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="buttons is-centered">
-        <button class="button is-primary" id="btn-idea">Quiero una idea para una historia</button>
-        <button class="button is-link" id="btn-inicio">Quiero el inicio de una historia</button>
-        <button class="button is-info" id="btn-completa">Quiero una historia completa</button>
-      </div>
-      <div class="box mt-5" id="story-box">
-        <p class="has-text-centered has-text-grey"></p>
-      </div>
-    </div>
-  </div>
-`;
+async function getContinueStory(category, idea, story) {
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${apiKey}`,
+  };
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: `Genera una idea para continuar una historia de ${category} usando esta idea: ${idea}, devuelveme un texto corto, sin comas, ni comillas y no mas de 15 palabras. La historia actual es: ${story}` }],
+      n: 3,
+    }),
+  });
+  const data = await response.json();
+  return data.choices.map(choice => choice.message.content);
+}
 
-const btnIdea = document.querySelector('#btn-idea');
-const btnInicio = document.querySelector('#btn-inicio');
-const btnCompleta = document.querySelector('#btn-completa');
-const categorySelect = document.querySelector('#category-select');
-const storyBox = document.querySelector('#story-box');
+async function getStoryByIdea(category, idea) {
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${apiKey}`,
+  };
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: `Genera una idea de titulo para una historia sobre ${category}, devuelveme solo el titulo en una respuesta corta, sin comas, ni comillas y no mas de 20 palabras.` }],
+      n: 3,
+    }),
+  });
+  const data = await response.json();
+  return data.choices.map(choice => choice.message.content);
+}
 
-btnIdea.addEventListener('click', async () => {
-  const story = await getStory(categorySelect.value);
-  console.log(story);
-  storyBox.textContent = story;
+function generateTitles() {
+  const promise = getStoryByIdea(categorySelect.value);
+  promise.then(ideas => {
+    btnFirstIdea.textContent = ideas[0];
+    btnSecondIdea.textContent = ideas[1];
+    btnThirdIdea.textContent = ideas[2];
+    buttonsContainer.classList.remove('is-hidden');
+  }).catch(error => {
+    console.log(error);
+  });
+}
+
+function continueStory(selectedIdea) {
+  buttonsContainer.classList.add('is-hidden');
+  const promise = getContinueStory(categorySelect.value, selectedIdea, storyBox.textContent);
+  promise.then(stories => {
+    btnFirstIdea.textContent = ` ${stories[0]}`;
+    btnSecondIdea.textContent = ` ${stories[1]}`;
+    btnThirdIdea.textContent = ` ${stories[2]}`;
+    buttonsContainer.classList.remove('is-hidden');
+  }).catch(error => {
+    console.log(error);
+  });
+}
+
+categorySelect.addEventListener('change', () => {
+  if (categorySelect.value === '') {
+    buttonsContainer.classList.add('is-hidden');
+    btnFirstIdea.textContent = '';
+    btnSecondIdea.textContent = '';
+    btnThirdIdea.textContent = '';
+    storyBox.textContent = '';
+    return; 
+  }
+  generateTitles();
 });
 
-btnInicio.addEventListener('click', async () => {
-  const story = await getStory(categorySelect.value);
-  storyBox.textContent = story;
+btnFirstIdea.addEventListener('click', async () => {
+  const story = await getStory(categorySelect.value, btnFirstIdea.textContent);
+  storyBox.textContent += story;
+  continueStory(btnFirstIdea.textContent);
 });
 
-btnCompleta.addEventListener('click', async () => {
-  const story = await getStory(categorySelect.value);
-  storyBox.textContent = story;
+btnSecondIdea.addEventListener('click', async () => {
+  const story = await getStory(categorySelect.value, btnSecondIdea.textContent);
+  storyBox.textContent += story;
+  continueStory(btnSecondIdea.textContent);
+});
+
+btnThirdIdea.addEventListener('click', async () => {
+  const story = await getStory(categorySelect.value, btnThirdIdea.textContent);
+  storyBox.textContent += story;
+  continueStory(btnThirdIdea.textContent);
 });

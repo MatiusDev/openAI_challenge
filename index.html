@@ -1,13 +1,47 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Story AI</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css">
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/assets/js/main.js"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Story AI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+
+<body>
+  <div class="container is-flex is-flex-direction-column is-align-items-center is-justify-content-center">
+    <div class="box box-container">
+      <div class="field has-text-centered">
+        <h2 class="title is-2 label">Escribe una historia</h2>
+        <div class="control">
+          <div class="select is-fullwidth">
+            <select id="category-select">
+              <option value="">Elige una categoría</option>
+              <option value="comedia">Comedia</option>
+              <option value="romance">Romance</option>
+              <option value="fantasia">Fantasía</option>
+              <option value="ciencia ficción">Ciencia ficción</option>
+              <option value="misterio">Misterio</option>
+              <option value="suspenso">Suspenso</option>
+              <option value="terror">Terror</option>
+              <option value="historia">Historia</option>
+              <option value="biografía">Biografía</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="buttons-container" class="buttons is-centered fade-in is-hidden">
+        <button class="button is-primary" id="btn-first-idea"></button>
+        <button class="button is-link" id="btn-second-idea"></button>
+        <button class="button is-info" id="btn-third-idea"></button>
+      </div>
+      <div class="box mt-5" id="story-box">
+        <p class="has-text-centered has-text-grey"></p>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/assets/js/main.js"></script>
+</body>
+
 </html>
